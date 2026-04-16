@@ -1,73 +1,20 @@
-import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-// GET
-export async function GET() {
-  const [rows] = await db.query("SELECT * FROM sertifikat ORDER BY id DESC");
+const SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbxQV2RmOByLn5DNpeiSLR4-Ndn5Jr6xsRGoxFWenn1sXiDZ79xOEwqb11v89eDQwoSLFA/exec"; // MASUKKAN URL /exec DISINI
 
-  return NextResponse.json(rows);
+export async function GET() {
+  const res = await fetch(SCRIPT_URL, { cache: "no-store" });
+  const data = await res.json();
+  return NextResponse.json(data);
 }
 
-// POST
 export async function POST(req: Request) {
   const body = await req.json();
-
-  await db.query(
-    `INSERT INTO sertifikat 
-    (blok, nomor_shgb, desa, luas, posisi, proses, keterangan, updated_at, updated_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)`,
-    [
-      body.blok,
-      body.nomor_shgb,
-      body.desa,
-      body.luas,
-      body.posisi,
-      body.proses,
-      body.keterangan,
-      body.updated_by || "system",
-    ],
-  );
-
-  return NextResponse.json({ success: true });
-}
-
-// PUT
-export async function PUT(req: Request) {
-  const body = await req.json();
-
-  await db.query(
-    `UPDATE sertifikat SET
-      blok=?,
-      nomor_shgb=?,
-      desa=?,
-      luas=?,
-      posisi=?,
-      proses=?,
-      keterangan=?,
-      updated_at = NOW(),
-      updated_by = ?
-    WHERE id=?`,
-    [
-      body.blok,
-      body.nomor_shgb,
-      body.desa,
-      body.luas,
-      body.posisi,
-      body.proses,
-      body.keterangan,
-      body.updated_by || "system",
-      body.id,
-    ],
-  );
-
-  return NextResponse.json({ success: true });
-}
-
-// DELETE
-export async function DELETE(req: Request) {
-  const { id } = await req.json();
-
-  await db.query("DELETE FROM sertifikat WHERE id=?", [id]);
-
-  return NextResponse.json({ success: true });
+  const res = await fetch(SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  const result = await res.json();
+  return NextResponse.json(result);
 }

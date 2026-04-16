@@ -26,20 +26,23 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/login", {
+      const res = await fetch("/api/sertifikat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, action: "login" }),
       });
 
       const data = await res.json();
 
       if (data.success) {
+        // PERBAIKAN LOGIKA: Simpan ke localStorage agar Dashboard mengenali sesi
         localStorage.setItem("isLogin", "true");
-        localStorage.setItem("admin", data.user.nama);
+        // Gunakan kunci "user" agar sinkron dengan pengecekan di Dashboard
+        localStorage.setItem("user", username.toLowerCase());
+
         router.push("/dashboard");
       } else {
-        alert(data.message || "Login gagal.");
+        alert(data.message || "Login gagal. Periksa kembali akun Anda.");
       }
     } catch (err) {
       alert("Terjadi kesalahan koneksi ke server.");
@@ -49,9 +52,7 @@ export default function LoginPage() {
   };
 
   return (
-    // PADA HP: Menggunakan p-4 agar ada jarak di pinggir layar
     <div className="min-h-screen flex items-center justify-center bg-slate-100 font-sans p-4 sm:p-6">
-      {/* PADA HP: w-full memastikan lebar penuh, max-w-md membatasi di layar besar */}
       <div className="bg-white p-6 sm:p-10 rounded-[2.5rem] shadow-xl w-full max-w-md border border-slate-200">
         {/* Logo & Header */}
         <div className="flex flex-col items-center mb-6 sm:mb-8">
@@ -59,10 +60,10 @@ export default function LoginPage() {
             <i className="bx bxs-buildings text-3xl sm:text-4xl text-blue-300"></i>
           </div>
           <div className="text-center">
-            <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight uppercase italic">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight uppercase italic leading-none">
               Login Admin
             </h1>
-            <p className="text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-1">
+            <p className="text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-2">
               Dashboard E-Sertifikat
             </p>
           </div>
@@ -70,7 +71,6 @@ export default function LoginPage() {
 
         {/* Form Inputs */}
         <div className="space-y-4">
-          {/* Username */}
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">
               Username
@@ -86,7 +86,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Password */}
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">
               Password
@@ -113,7 +112,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Button - Menyesuaikan tinggi untuk sentuhan jari (touch-friendly) */}
           <button
             onClick={handleLogin}
             disabled={loading}
@@ -131,9 +129,11 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-[10px] font-black text-slate-300 uppercase tracking-tighter">
-            &copy; 2026 PT Lan sena Jaya. All Right Reserved.
+        <div className="mt-8 text-center border-t border-slate-100 pt-6">
+          <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest leading-relaxed">
+            &copy; 2026 PT Lan Sena Jaya.
+            <br />
+            All Rights Reserved.
           </p>
         </div>
       </div>
