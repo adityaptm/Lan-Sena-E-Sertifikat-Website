@@ -1,21 +1,42 @@
-import { db } from "@/lib/db";
-import * as XLSX from "xlsx";
 import { NextResponse } from "next/server";
+import * as XLSX from "xlsx";
 
 export async function GET() {
-  const [rows]: any = await db.query("SELECT * FROM sertifikat");
+  try {
+    // Ambil data langsung dari Google Apps Script (sama seperti di Dashboard)
+    const res = await fetch(process.env.NEXT_PUBLIC_API_URL || "");
+    const data = await res.json();
 
-  const ws = XLSX.utils.json_to_sheet(rows);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Data");
+    if (!Array.isArray(data)) {
+      throw new Error("Data format is invalid");
+    }
 
-  const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+    // Buat worksheet dari data JSON
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sertifikat");
 
-  return new NextResponse(buffer, {
-    headers: {
-      "Content-Disposition": "attachment; filename=sertifikat.xlsx",
-      "Content-Type":
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    },
-  });
+    // Generate buffer Excel
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    // Kirim sebagai file download
+    return new NextResponse(excelBuffer, {
+      status: 200,
+      headers: {
+        "Content-Disposition":
+          'attachment; filename="Data_Sertifikat_Lansena.xlsx"',
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      },
+    });
+  } catch (error) {
+    console.error("Export Error:", error);
+    return NextResponse.json(
+      { error: "Gagal mengunduh data" },
+      { status: 500 },
+    );
+  }
 }

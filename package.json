@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "boxicons": "^2.1.4",
     "file-saver": "^2.0.5",
     "mysql2": "^3.22.0",
     "next": "16.2.3",
