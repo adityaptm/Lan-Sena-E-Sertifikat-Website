@@ -15,6 +15,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Lansena E-Sertifikat",
   description: "Menyediakan Layanan Sertifikat Digital",
+  // Konfigurasi Icon
+  icons: {
+    icon: [
+      {
+        url: "/ls.ico",
+        href: "/ls.ico",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
