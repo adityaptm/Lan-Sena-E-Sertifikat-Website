@@ -15,12 +15,18 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Lansena E-Sertifikat",
   description: "Menyediakan Layanan Sertifikat Digital",
-  // Konfigurasi Icon
+  // Konfigurasi lengkap agar Android & iOS dipaksa update
   icons: {
     icon: [
+      { url: "/ls.ico?v=4", href: "/ls.ico?v=4" },
+      { url: "/ls.ico?v=4", href: "/ls.ico?v=4", sizes: "32x32" },
+    ],
+    shortcut: "/ls.ico?v=4",
+    apple: "/ls.ico?v=4", // Ini sangat penting untuk browser mobile
+    other: [
       {
-        url: "/ls.ico",
-        href: "/ls.ico",
+        rel: "apple-touch-icon-precomposed",
+        url: "/ls.ico?v=4",
       },
     ],
   },
@@ -36,7 +42,9 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+      </body>
     </html>
   );
 }
