@@ -248,7 +248,7 @@ export default function Dashboard() {
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
           <div>
             <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">
-              Monitoring Berkas
+              Hallo Administrator!
             </h2>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
               Lan Sena Jaya E-System
