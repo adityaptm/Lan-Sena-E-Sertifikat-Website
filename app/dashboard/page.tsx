@@ -10,8 +10,6 @@ export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  
-  // State baru untuk filter kategori
   const [activeFilter, setActiveFilter] = useState("Semua");
 
   const [form, setForm] = useState({
@@ -134,7 +132,6 @@ export default function Dashboard() {
     persentase: data.length > 0 ? Math.round((data.filter((item) => item.proses === "Selesai").length / data.length) * 100) : 0,
   };
 
-  // LOGIKA FILTER DATA
   const filteredData = data.filter((i) => {
     const matchesSearch = JSON.stringify(i).toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = activeFilter === "Semua" ? true : i.proses === activeFilter;
@@ -145,15 +142,40 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-[#F8FAFC] font-sans text-slate-900">
-      {/* SIDEBAR (Dipertahankan sesuai kode Anda) */}
-      <aside className={`fixed inset-y-0 left-0 w-72 bg-[#0A3660] text-white flex flex-col z-[110] transition-transform duration-300 md:translate-x-0 md:sticky md:h-screen ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      
+      {/* MOBILE HEADER - Tetap Ada */}
+      <div className="md:hidden flex items-center justify-between p-4 bg-[#0A3660] text-white sticky top-0 z-[100]">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+            <i className="bx bxs-buildings text-lg"></i>
+          </div>
+          <h1 className="font-black text-xs tracking-tighter uppercase">LAN SENA</h1>
+        </div>
+        <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-white/10 rounded-lg">
+          <i className="bx bx-menu-alt-right text-2xl"></i>
+        </button>
+      </div>
+
+      {/* OVERLAY MOBILE */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] md:hidden" onClick={() => setIsSidebarOpen(false)} />
+      )}
+
+      {/* SIDEBAR - Sekarang Terintegrasi Mobile & Desktop */}
+      <aside className={`fixed inset-y-0 left-0 w-72 bg-[#0A3660] text-white flex flex-col z-[120] transition-transform duration-300 md:translate-x-0 md:sticky md:h-screen ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="p-8 flex-1">
-          <div className="hidden md:flex items-center gap-4 mb-10">
+          {/* Tombol Close di Mobile Sidebar */}
+          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden absolute top-6 right-6 text-2xl text-white/50">
+            <i className="bx bx-x"></i>
+          </button>
+
+          <div className="flex items-center gap-4 mb-10">
             <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
               <i className="bx bxs-buildings text-xl"></i>
             </div>
             <h1 className="font-black text-base tracking-tighter uppercase">LAN SENA E-System</h1>
           </div>
+          
           <div className="mb-8 p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-3">
             <div className="w-9 h-9 bg-emerald-500 rounded-lg flex-shrink-0 flex items-center justify-center font-black text-xs uppercase shadow-inner">{currentUser.charAt(0)}</div>
             <div className="flex-1 min-w-0">
@@ -161,12 +183,14 @@ export default function Dashboard() {
               <h4 className="text-xs font-bold truncate mt-1 uppercase">{currentUser}</h4>
             </div>
           </div>
+          
           <nav>
             <div className="flex items-center gap-3 px-4 py-3 bg-white/10 text-emerald-400 rounded-xl border border-white/10 text-sm font-bold cursor-pointer">
               <i className="bx bxs-grid-alt"></i> Dashboard
             </div>
           </nav>
         </div>
+        
         <div className="p-6">
           <button onClick={() => { localStorage.clear(); window.location.href = "/login"; }} className="w-full py-3.5 bg-rose-500/10 text-rose-500 rounded-xl text-[10px] font-black uppercase border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all tracking-widest">Logout</button>
         </div>
@@ -211,11 +235,7 @@ export default function Dashboard() {
             <button
               key={filter}
               onClick={() => setActiveFilter(filter)}
-              className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                activeFilter === filter 
-                ? "bg-[#0A3660] text-white shadow-lg shadow-blue-900/20" 
-                : "bg-white text-slate-400 border border-slate-100 hover:bg-slate-50"
-              }`}
+              className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeFilter === filter ? "bg-[#0A3660] text-white shadow-lg" : "bg-white text-slate-400 border border-slate-100"}`}
             >
               {filter}
             </button>
@@ -225,13 +245,7 @@ export default function Dashboard() {
         {/* SEARCH BAR */}
         <div className="relative mb-6">
           <i className="bx bx-search absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 text-2xl"></i>
-          <input
-            type="text"
-            placeholder="CARI BERDASARKAN BLOK, DESA, ATAU NO SHGB..."
-            className="w-full pl-16 pr-6 py-5 bg-white border border-slate-200 rounded-[2rem] text-sm font-bold outline-none focus:border-[#0A3660] shadow-sm uppercase placeholder:text-slate-300"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <input type="text" placeholder="CARI DATA..." className="w-full pl-16 pr-6 py-5 bg-white border border-slate-200 rounded-[2rem] text-sm font-bold outline-none focus:border-[#0A3660] shadow-sm uppercase placeholder:text-slate-300" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
         </div>
 
         {/* DATA TABLE */}
@@ -277,13 +291,11 @@ export default function Dashboard() {
                     </tr>
                   ))
                 ) : (
-                  /* UI TEKS DATA TIDAK DITEMUKAN */
                   <tr>
                     <td colSpan={8} className="px-8 py-20 text-center">
                       <div className="flex flex-col items-center justify-center">
                         <i className="bx bx-search-alt text-5xl text-slate-200 mb-4"></i>
                         <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Data Tidak Ditemukan</p>
-                        <p className="text-[10px] text-slate-300 mt-1 uppercase">Coba gunakan kata kunci lain atau ubah filter status</p>
                       </div>
                     </td>
                   </tr>
@@ -294,7 +306,7 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* MODAL (Dipertahankan sesuai kode Anda) */}
+      {/* MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[200] p-4">
           <div className="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl p-8 md:p-12 max-h-[90vh] overflow-y-auto">
@@ -332,9 +344,7 @@ export default function Dashboard() {
             </div>
             <div className="flex gap-4">
               <button onClick={() => setShowModal(false)} className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-[1.5rem] font-black text-[10px] uppercase">Batal</button>
-              <button onClick={() => handleAction(form.id ? "update" : "create", form)} disabled={loading} className="flex-[2] py-4 bg-[#0A3660] text-white rounded-[1.5rem] font-black text-[10px] uppercase shadow-xl hover:bg-[#0d467a] disabled:opacity-50 transition-all">
-                {loading ? "WAIT..." : "SIMPAN DATA"}
-              </button>
+              <button onClick={() => handleAction(form.id ? "update" : "create", form)} disabled={loading} className="flex-[2] py-4 bg-[#0A3660] text-white rounded-[1.5rem] font-black text-[10px] uppercase shadow-xl hover:bg-[#0d467a] disabled:opacity-50 transition-all">{loading ? "WAIT..." : "SIMPAN DATA"}</button>
             </div>
           </div>
         </div>
