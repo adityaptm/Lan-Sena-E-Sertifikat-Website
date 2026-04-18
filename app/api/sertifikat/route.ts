@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbx789zXNj5Q-BbuaUB5N-jNvrkS6kqllaBi30gjHzJQnrhkeUX5LuFII5ySgBx6YKDjiw/exec"; // MASUKKAN URL /exec DISINI
+  "https://script.google.com/macros/s/AKfycbyLObg54w-fU6PV-qBN_dwBYpiiR1RsmhkenTvUGBnwlvu2fu0p1419oQdDvv09_3lEEg/exec"; // MASUKKAN URL /exec DISINI
 
 export async function GET() {
   const res = await fetch(SCRIPT_URL, { cache: "no-store" });
