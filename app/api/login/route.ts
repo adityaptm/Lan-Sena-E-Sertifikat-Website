@@ -4,7 +4,7 @@ export async function POST(req: Request) {
   try {
     const { username, password } = await req.json();
     const APPS_SCRIPT_URL =
-      "https://script.google.com/macros/s/AKfycbx789zXNj5Q-BbuaUB5N-jNvrkS6kqllaBi30gjHzJQnrhkeUX5LuFII5ySgBx6YKDjiw/exec";
+      "https://script.google.com/macros/s/AKfycbyLObg54w-fU6PV-qBN_dwBYpiiR1RsmhkenTvUGBnwlvu2fu0p1419oQdDvv09_3lEEg/exec";
 
     const response = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
