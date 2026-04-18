@@ -7,7 +7,7 @@ export default function Dashboard() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState("");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State untuk Sidebar Mobile
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   const [form, setForm] = useState({
@@ -73,8 +73,10 @@ export default function Dashboard() {
     }
   }, [fetchData]);
 
+  // FIX: Format CSV agar kolom rapi dan tidak bergeser
   const downloadExcel = () => {
     const headers = [
+      "No",
       "Blok",
       "No SHGB",
       "Desa",
@@ -83,12 +85,14 @@ export default function Dashboard() {
       "Status",
       "Keterangan",
       "Editor",
-      "Waktu",
+      "Waktu Update",
     ].join(",");
+
     const rows = data.map((item) =>
       [
+        item.id,
         item.blok,
-        `'${item.nomor_shgb}`,
+        `'${item.nomor_shgb}`, // Tanda petik satu agar angka panjang tidak berantakan di Excel
         item.desa,
         item.luas,
         item.posisi,
@@ -98,11 +102,13 @@ export default function Dashboard() {
         item.tanggal,
       ].join(","),
     );
+
     const csvContent =
-      "data:text/csv;charset=utf-8," + headers + "\n" + rows.join("\n");
+      "data:text/csv;charset=utf-8,\uFEFF" + headers + "\n" + rows.join("\n");
+    const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
-    link.setAttribute("href", encodeURI(csvContent));
-    link.setAttribute("download", `Laporan_Sertifikat.csv`);
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Laporan_Sertifikat_Lansena.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -111,16 +117,19 @@ export default function Dashboard() {
   const handleAction = async (action: string, payload: any) => {
     setLoading(true);
     try {
+      // FIX TANGGAL: Menggunakan format Indonesia (WIB) sebagai String
       const now = new Date();
-      const timestamp = now
-        .toLocaleString("id-ID", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-        .replace(/\./g, ":");
+      const timestamp = new Intl.DateTimeFormat("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "Asia/Jakarta",
+      })
+        .format(now)
+        .replace(/\//g, "-");
 
       const res = await fetch("/api/sertifikat", {
         method: "POST",
@@ -128,9 +137,10 @@ export default function Dashboard() {
           ...payload,
           action,
           editor: currentUser,
-          tanggal: timestamp,
+          tanggal: timestamp, // Dikirim sebagai teks: "18 Apr 2026 11:15"
         }),
       });
+
       const resData = await res.json();
       if (resData.success) {
         setShowModal(false);
@@ -163,7 +173,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-[#F8FAFC] font-sans text-slate-900">
-      {/* MOBILE HEADER (BARU) */}
+      {/* MOBILE HEADER */}
       <div className="md:hidden flex items-center justify-between p-4 bg-[#0A3660] text-white">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
@@ -186,23 +196,21 @@ export default function Dashboard() {
         className={`fixed inset-y-0 left-0 w-72 bg-[#0A3660] text-white flex flex-col z-[110] transition-transform duration-300 md:translate-x-0 md:sticky md:h-screen ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="p-8 flex-1">
-          {/* Close button mobile */}
           <button
             onClick={() => setIsSidebarOpen(false)}
             className="md:hidden absolute top-6 right-6 text-2xl text-white/50"
           >
             <i className="bx bx-x"></i>
           </button>
-
           <div className="hidden md:flex items-center gap-4 mb-10">
             <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
               <i className="bx bxs-buildings text-xl"></i>
             </div>
-            <h1 className="font-black text-base tracking-tighter">
+            <h1 className="font-black text-base tracking-tighter uppercase">
               LAN SENA E-System
             </h1>
           </div>
-          <div className="mb-8 p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-3 overflow-hidden">
+          <div className="mb-8 p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-3">
             <div className="w-9 h-9 bg-emerald-500 rounded-lg flex-shrink-0 flex items-center justify-center font-black text-xs uppercase shadow-inner">
               {currentUser.charAt(0)}
             </div>
@@ -216,7 +224,7 @@ export default function Dashboard() {
             </div>
           </div>
           <nav>
-            <div className="flex items-center gap-3 px-4 py-3 bg-white/10 text-emerald-400 rounded-xl border border-white/10 text-sm font-bold shadow-sm">
+            <div className="flex items-center gap-3 px-4 py-3 bg-white/10 text-emerald-400 rounded-xl border border-white/10 text-sm font-bold">
               <i className="bx bxs-grid-alt"></i> Dashboard
             </div>
           </nav>
@@ -242,16 +250,15 @@ export default function Dashboard() {
         />
       )}
 
-      {/* MAIN CONTENT */}
       <main className="flex-1 p-4 md:p-10 w-full overflow-x-hidden">
-        {/* HEADER */}
+        {/* HEADER SECTION */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
           <div>
             <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">
-              Hallo Administrator!
+              Halo, {currentUser}!
             </h2>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-              Lan Sena Jaya E-System
+              Sistem Manajemen E-Sertifikat
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
@@ -260,7 +267,7 @@ export default function Dashboard() {
               className="flex-1 lg:flex-none px-5 py-3.5 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 shadow-sm"
             >
               <i className="bx bxs-file-export text-emerald-500 text-lg"></i>{" "}
-              Export
+              Export CSV
             </button>
             <button
               onClick={() => {
@@ -276,14 +283,14 @@ export default function Dashboard() {
                 });
                 setShowModal(true);
               }}
-              className="flex-[2] lg:flex-none px-8 py-3.5 bg-[#0A3660] text-white rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 shadow-xl shadow-blue-900/20"
+              className="flex-[2] lg:flex-none px-8 py-3.5 bg-[#0A3660] text-white rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 shadow-xl"
             >
               <i className="bx bx-plus-circle text-lg"></i> Tambah Berkas
             </button>
           </div>
         </div>
 
-        {/* STATS */}
+        {/* STATS CARDS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
           {[
             {
@@ -333,19 +340,19 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* SEARCH */}
+        {/* SEARCH BAR */}
         <div className="relative mb-6">
           <i className="bx bx-search absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 text-2xl"></i>
           <input
             type="text"
-            placeholder="Cari data..."
+            placeholder="Cari berdasarkan Blok, Desa, atau No SHGB..."
             className="w-full pl-16 pr-6 py-5 bg-white border border-slate-200 rounded-[2rem] text-sm font-semibold outline-none focus:border-[#0A3660] shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        {/* TABLE */}
+        {/* DATA TABLE */}
         <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[1000px]">
@@ -371,25 +378,13 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {(() => {
-                  const filteredData = data.filter((i) =>
+                {data
+                  .filter((i) =>
                     JSON.stringify(i)
                       .toLowerCase()
                       .includes(searchTerm.toLowerCase()),
-                  );
-                  if (filteredData.length === 0)
-                    return (
-                      <tr>
-                        <td
-                          colSpan={8}
-                          className="px-8 py-20 text-center text-slate-300 font-bold uppercase tracking-widest text-xs italic"
-                        >
-                          Data Tidak Ditemukan
-                        </td>
-                      </tr>
-                    );
-
-                  return filteredData.map((item) => (
+                  )
+                  .map((item) => (
                     <tr key={item.id} className="hover:bg-blue-50/30 group">
                       <td className="px-8 py-5 font-black text-[#0A3660] text-sm">
                         {item.blok}
@@ -421,7 +416,7 @@ export default function Dashboard() {
                       </td>
                       <td className="px-8 py-5">
                         <p
-                          className="text-[10px] text-slate-400 italic max-w-[150px] truncate group-hover:whitespace-normal group-hover:text-slate-600 transition-all cursor-help"
+                          className="text-[10px] text-slate-400 italic max-w-[150px] truncate group-hover:whitespace-normal group-hover:text-slate-600 cursor-help"
                           title={item.keterangan}
                         >
                           {item.keterangan || "—"}
@@ -429,12 +424,11 @@ export default function Dashboard() {
                       </td>
                       <td className="px-8 py-5">
                         <div className="flex flex-col">
-                          <span className="text-[11px] font-black text-[#0A3660] uppercase tracking-tighter">
+                          <span className="text-[11px] font-black text-[#0A3660] uppercase">
                             {item.editor || "System"}
                           </span>
                           <span className="text-[9px] font-bold text-slate-400 mt-0.5 flex items-center gap-1">
-                            <i className="bx bx-time-five"></i>{" "}
-                            {item.tanggal || "—"}
+                            <i className="bx bx-time-five"></i> {item.tanggal}
                           </span>
                         </div>
                       </td>
@@ -461,27 +455,25 @@ export default function Dashboard() {
                         </div>
                       </td>
                     </tr>
-                  ));
-                })()}
+                  ))}
               </tbody>
             </table>
           </div>
         </div>
       </main>
 
-      {/* MODAL (Tetap sama) */}
+      {/* MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[200] p-4">
-          <div className="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl p-8 md:p-12 max-h-[90vh] overflow-y-auto border border-white/20">
+          <div className="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl p-8 md:p-12 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-8">
               <h3 className="text-xl font-black text-[#0A3660] tracking-tight uppercase">
                 {form.id ? "Update" : "Tambah"}{" "}
-                <span className="text-emerald-500">Berkas</span>{" "}
-                {form.id && ` #` + form.id}
+                <span className="text-emerald-500">Berkas</span>
               </h3>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-slate-300 hover:text-rose-500 transition-colors text-3xl"
+                className="text-slate-300 hover:text-rose-500 text-3xl"
               >
                 <i className="bx bx-x"></i>
               </button>
@@ -498,7 +490,7 @@ export default function Dashboard() {
                     {f.l}
                   </label>
                   <input
-                    className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl text-sm font-bold focus:bg-white focus:border-[#0A3660]/20 outline-none transition-all uppercase"
+                    className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl text-sm font-bold focus:bg-white focus:border-[#0A3660]/20 outline-none uppercase"
                     value={(form as any)[f.k]}
                     onChange={(e) =>
                       setForm({ ...form, [f.k]: e.target.value })
@@ -511,7 +503,7 @@ export default function Dashboard() {
                   Posisi Berkas
                 </label>
                 <select
-                  className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl text-sm font-bold outline-none"
+                  className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl text-sm font-bold"
                   value={form.posisi}
                   onChange={(e) => setForm({ ...form, posisi: e.target.value })}
                 >
@@ -526,7 +518,7 @@ export default function Dashboard() {
                   Status Proses
                 </label>
                 <select
-                  className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl text-sm font-bold outline-none"
+                  className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl text-sm font-bold"
                   value={form.proses}
                   onChange={(e) => setForm({ ...form, proses: e.target.value })}
                 >
@@ -539,7 +531,7 @@ export default function Dashboard() {
                   Keterangan Tambahan
                 </label>
                 <textarea
-                  className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl text-sm font-bold min-h-[100px] outline-none"
+                  className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl text-sm font-bold min-h-[100px]"
                   placeholder="Isi keterangan..."
                   value={form.keterangan}
                   onChange={(e) =>
@@ -551,7 +543,7 @@ export default function Dashboard() {
             <div className="flex gap-4">
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-[1.5rem] font-black text-[10px] uppercase hover:bg-slate-200 transition-all"
+                className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-[1.5rem] font-black text-[10px] uppercase"
               >
                 Batal
               </button>
@@ -560,7 +552,7 @@ export default function Dashboard() {
                   handleAction(form.id ? "update" : "create", form)
                 }
                 disabled={loading}
-                className="flex-[2] py-4 bg-[#0A3660] text-white rounded-[1.5rem] font-black text-[10px] uppercase shadow-xl shadow-blue-900/30 hover:bg-[#0d457a] transition-all disabled:opacity-50"
+                className="flex-[2] py-4 bg-[#0A3660] text-white rounded-[1.5rem] font-black text-[10px] uppercase shadow-xl disabled:opacity-50"
               >
                 {loading ? "Wait..." : "Simpan Data"}
               </button>
