@@ -126,6 +126,7 @@ export async function POST(req: Request) {
 
     const res = await fetch(SCRIPT_URL, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
@@ -142,9 +143,10 @@ export async function POST(req: Request) {
     }
     return NextResponse.json(result);
   } catch (err) {
-    console.error("POST /api/sertifikat error:", err);
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    console.error("POST /api/sertifikat error:", errorMessage);
     return NextResponse.json(
-      { success: false, error: "Gagal memproses data" },
+      { success: false, error: `Gagal memproses data: ${errorMessage}` },
       { status: 500 }
     );
   }
