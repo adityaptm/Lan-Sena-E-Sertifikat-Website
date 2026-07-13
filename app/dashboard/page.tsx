@@ -103,7 +103,7 @@ export default function Dashboard() {
       const matchesSearch =
         !searchTerm ||
         item.blok.toLowerCase().includes(searchLower) ||
-        item.nomor_shgb.toLowerCase().includes(searchLower) ||
+        String(item.nomor_shgb).toLowerCase().includes(searchLower) ||
         item.desa.toLowerCase().includes(searchLower) ||
         item.keterangan?.toLowerCase().includes(searchLower);
 
