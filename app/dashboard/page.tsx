@@ -135,7 +135,7 @@ export default function Dashboard() {
     }
 
     if (file.size > MAX_PDF_SIZE_BYTES) {
-      alert("File terlalu besar. Maksimal 5MB");
+      alert("File terlalu besar. Maksimal 10MB");
       return;
     }
 

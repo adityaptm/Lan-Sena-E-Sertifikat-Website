@@ -16,8 +16,8 @@ export const POSISI_OPTIONS: PosisiBerkas[] = ["KANTOR", "NOTARIS", "BANK", "BPN
 /** Opsi filter status */
 export const FILTER_OPTIONS = ["Semua", "Selesai", "Belum Selesai"] as const;
 
-/** Batas ukuran file PDF (5MB) - dibatasi agar base64 payload tidak melebihi limit 10MB Next.js */
-export const MAX_PDF_SIZE_BYTES = 5 * 1024 * 1024;
+/** Batas ukuran file PDF (10MB) */
+export const MAX_PDF_SIZE_BYTES = 10 * 1024 * 1024;
 
 /** Nama cookie session */
 export const SESSION_COOKIE_NAME = "ls_session";
