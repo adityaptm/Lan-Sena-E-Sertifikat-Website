@@ -129,9 +129,20 @@ export async function POST(req: Request) {
       body: JSON.stringify(payload),
     });
 
-    const result = await res.json();
+    const resultText = await res.text();
+    let result;
+    try {
+      result = JSON.parse(resultText);
+    } catch (e) {
+      console.error("Non-JSON response from GAS:", resultText.substring(0, 500));
+      return NextResponse.json(
+        { success: false, error: "Invalid response from Apps Script" },
+        { status: 502 }
+      );
+    }
     return NextResponse.json(result);
-  } catch {
+  } catch (err) {
+    console.error("POST /api/sertifikat error:", err);
     return NextResponse.json(
       { success: false, error: "Gagal memproses data" },
       { status: 500 }
