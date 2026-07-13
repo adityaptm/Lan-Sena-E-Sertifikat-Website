@@ -5,8 +5,9 @@
 
 /** Membersihkan string dari karakter berbahaya */
 export function sanitizeString(input: unknown): string {
-  if (typeof input !== "string") return "";
-  return input
+  if (input === null || input === undefined) return "";
+  const strInput = typeof input === "string" ? input : String(input);
+  return strInput
     .replace(/[<>]/g, "") // Strip HTML tags
     .replace(/javascript:/gi, "") // Strip javascript: protocol
     .replace(/on\w+\s*=/gi, "") // Strip inline event handlers
