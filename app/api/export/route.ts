@@ -1,28 +1,63 @@
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
+import { SESSION_COOKIE_NAME } from "@/app/lib/constants";
+import { verifySession } from "@/app/lib/session";
 
-export async function GET() {
+const SCRIPT_URL = process.env.GOOGLE_SCRIPT_SERTIFIKAT;
+
+export async function GET(req: Request) {
+  // Verifikasi session
+  const cookieHeader = req.headers.get("cookie") || "";
+  const cookies = Object.fromEntries(
+    cookieHeader.split(";").map((c) => {
+      const [key, ...val] = c.trim().split("=");
+      return [key, val.join("=")];
+    })
+  );
+
+  const token = cookies[SESSION_COOKIE_NAME];
+  if (!token) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
+  const user = await verifySession(token);
+  if (!user) {
+    return NextResponse.json(
+      { success: false, message: "Session expired" },
+      { status: 401 }
+    );
+  }
+
+  if (!SCRIPT_URL) {
+    return NextResponse.json(
+      { success: false, error: "Server configuration error" },
+      { status: 500 }
+    );
+  }
+
   try {
-    // Ambil data langsung dari Google Apps Script (sama seperti di Dashboard)
-    const res = await fetch(process.env.NEXT_PUBLIC_API_URL || "");
+    const res = await fetch(SCRIPT_URL, { cache: "no-store" });
     const data = await res.json();
 
     if (!Array.isArray(data)) {
-      throw new Error("Data format is invalid");
+      return NextResponse.json(
+        { success: false, error: "Format data tidak valid" },
+        { status: 502 }
+      );
     }
 
-    // Buat worksheet dari data JSON
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sertifikat");
 
-    // Generate buffer Excel
     const excelBuffer = XLSX.write(workbook, {
       bookType: "xlsx",
       type: "buffer",
     });
 
-    // Kirim sebagai file download
     return new NextResponse(excelBuffer, {
       status: 200,
       headers: {
@@ -32,11 +67,10 @@ export async function GET() {
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       },
     });
-  } catch (error) {
-    console.error("Export Error:", error);
+  } catch {
     return NextResponse.json(
-      { error: "Gagal mengunduh data" },
-      { status: 500 },
+      { success: false, error: "Gagal mengunduh data" },
+      { status: 500 }
     );
   }
 }
