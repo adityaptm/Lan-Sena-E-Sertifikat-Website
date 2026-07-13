@@ -6,6 +6,7 @@
 /** Membersihkan string dari karakter berbahaya */
 export function sanitizeString(input: unknown): string {
   if (input === null || input === undefined) return "";
+  // Konversi angka ke string agar ID (yang berupa angka) tidak terhapus menjadi ""
   const strInput = typeof input === "string" ? input : String(input);
   return strInput
     .replace(/[<>]/g, "") // Strip HTML tags
