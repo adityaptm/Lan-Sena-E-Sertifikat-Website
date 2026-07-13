@@ -3,7 +3,7 @@ import { createSession, createSessionCookie } from "@/app/lib/session";
 import { sanitizeString } from "@/app/lib/validation";
 import { checkRateLimit, getClientIp } from "@/app/lib/rate-limit";
 
-const APPS_SCRIPT_URL = process.env.GOOGLE_SCRIPT_LOGIN;
+const APPS_SCRIPT_URL = process.env.GOOGLE_SCRIPT_SERTIFIKAT;
 
 export async function POST(req: Request) {
   try {

@@ -13,32 +13,36 @@ export function sanitizeString(input: unknown): string {
     .trim();
 }
 
+/** Daftar posisi yang valid */
+const VALID_POSISI = ["KANTOR", "NOTARIS", "BANK", "BPN"];
+
+/** Daftar status proses yang valid */
+const VALID_PROSES = ["Selesai", "Belum Selesai"];
+
 /** Validasi apakah nilai adalah posisi yang valid */
-export function isValidPosisi(value: unknown): boolean {
-  const valid = ["KANTOR", "NOTARIS", "BANK", "BPN"];
-  return typeof value === "string" && valid.includes(value);
+export function isValidPosisi(value: string): boolean {
+  return VALID_POSISI.includes(value.toUpperCase());
 }
 
 /** Validasi apakah nilai adalah status proses yang valid */
-export function isValidProses(value: unknown): boolean {
-  const valid = ["Selesai", "Belum Selesai"];
-  return typeof value === "string" && valid.includes(value);
+export function isValidProses(value: string): boolean {
+  return VALID_PROSES.includes(value);
 }
 
-/** Validasi apakah string adalah base64 PDF yang valid */
-export function isValidPdfBase64(value: unknown): boolean {
-  if (typeof value !== "string") return false;
-  if (!value) return true; // Opsional, boleh kosong
-  // Harus dimulai dengan data:application/pdf;base64, atau URL Google Drive
-  return (
-    value.startsWith("data:application/pdf;base64,") ||
-    value.startsWith("https://drive.google.com/")
-  );
+/**
+ * Validasi apakah link_pdf aman.
+ * Boleh kosong, boleh base64 PDF, boleh URL Google Drive/https.
+ */
+export function isValidPdfLink(value: string): boolean {
+  if (!value) return true; // Opsional
+  if (value.startsWith("data:application/pdf;base64,")) return true;
+  if (value.startsWith("https://")) return true; // Google Drive dan URL aman lainnya
+  return false;
 }
 
 /**
  * Validasi dan sanitasi form sertifikat.
- * Returns objek bersih atau null jika data tidak valid.
+ * Returns objek bersih atau error jika data tidak valid.
  */
 export function validateSertifikatPayload(body: Record<string, unknown>): {
   valid: boolean;
@@ -55,16 +59,17 @@ export function validateSertifikatPayload(body: Record<string, unknown>): {
   const editor = sanitizeString(body.editor);
   const tanggal = sanitizeString(body.tanggal);
 
+  // Validasi field wajib
   if (!blok) return { valid: false, error: "Blok wajib diisi" };
   if (!nomor_shgb) return { valid: false, error: "No. SHGB wajib diisi" };
-  if (!desa) return { valid: false, error: "Desa wajib diisi" };
-  if (!luas) return { valid: false, error: "Luas wajib diisi" };
-  if (!isValidPosisi(posisi)) return { valid: false, error: "Posisi tidak valid" };
-  if (!isValidProses(proses)) return { valid: false, error: "Status proses tidak valid" };
 
-  // PDF validation (opsional, tapi jika ada harus valid)
+  // Posisi dan proses: validasi jika ada, default jika kosong
+  const finalPosisi = posisi && isValidPosisi(posisi) ? posisi : "KANTOR";
+  const finalProses = proses && isValidProses(proses) ? proses : "Belum Selesai";
+
+  // PDF validation (opsional, tapi jika ada harus aman)
   const link_pdf = typeof body.link_pdf === "string" ? body.link_pdf : "";
-  if (link_pdf && !isValidPdfBase64(link_pdf)) {
+  if (link_pdf && !isValidPdfLink(link_pdf)) {
     return { valid: false, error: "Format PDF tidak valid" };
   }
 
@@ -76,8 +81,8 @@ export function validateSertifikatPayload(body: Record<string, unknown>): {
       nomor_shgb: String(nomor_shgb),
       desa,
       luas,
-      posisi,
-      proses,
+      posisi: finalPosisi,
+      proses: finalProses,
       keterangan,
       link_pdf,
       nama_file_pdf: sanitizeString(body.nama_file_pdf),
